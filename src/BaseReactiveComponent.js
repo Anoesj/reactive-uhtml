@@ -13,7 +13,9 @@ const queue = new class Queue {
 
   constructor () {
     setInterval(() => {
-      this.tick();
+      if (this.#componentsToRender.size) {
+        this.tick();
+      }
     }, 5);
   }
 
@@ -33,17 +35,30 @@ const queue = new class Queue {
 
 class BaseReactiveComponent {
 
+  get renderStrategy () {
+    return 'defer'; // defer|immediately
+  }
+
   // Makes a data object 'reactive'.
   // NOTE: Will probably only trigger reactivity when Object values are reassigned, not when deeper objects are mutated.
   reactive (data) {
     return new Proxy(data, {
       set: (target, property, value, receiver) => {
-        console.log(`%c[${this.constructor.name}]%c – %cChange detected`, `color: ${colors.green};`, `color: ${colors.greyLight};`, `color: ${colors.greyLight};`);
+        console.log(`%c${this.constructor.name}%c – %cChange detected`, `color: ${colors.green};`, `color: ${colors.greyLight};`, `color: ${colors.greyLight};`);
         const success = Reflect.set(target, property, value, receiver);
-        // IDEA: Create setting with default that defines the rendering mode (whether the Queue is used, or the render function is called immediately).
-        // Queue prevents double renders when changing multiple reactive variables in a row.
-        queue.render(this);
-        // this.render(); // This is the version that doesn't debounce/deduplicate renders
+
+        switch (this.renderStrategy) {
+          case 'defer':
+            // Queue prevents double renders when changing multiple reactive variables in a row.
+            queue.render(this);
+            break;
+          case 'immediately':
+            // Don't defer renders
+            this.render();
+            break;
+          default:
+            throw new Error('Unknown render strategy.');
+        }
         return success;
       },
     });
@@ -66,28 +81,28 @@ class BaseReactiveComponent {
   }
 
   logRendering () {
-    console.log(`%c[${this.constructor.name}]%c – %cRendering`, `color: ${colors.green};`, `color: ${colors.greyLight};`, `color: ${colors.blue};`);
+    console.log(`%c${this.constructor.name}%c – %cRendering (strategy: ${this.renderStrategy})`, `color: ${colors.green};`, `color: ${colors.greyLight};`, `color: ${colors.blue};`);
   }
 
 }
 
-Object.defineProperty(BaseReactiveComponent.prototype, 'html', {
-  enumerable: false,
-  writable: true,
-  configurable: true,
-  value: html,
-});
+// Object.defineProperty(BaseReactiveComponent.prototype, 'html', {
+//   enumerable: false,
+//   writable: true,
+//   configurable: true,
+//   value: html,
+// });
 
-Object.defineProperty(BaseReactiveComponent.prototype, 'svg', {
-  enumerable: false,
-  writable: true,
-  configurable: true,
-  value: svg,
-});
+// Object.defineProperty(BaseReactiveComponent.prototype, 'svg', {
+//   enumerable: false,
+//   writable: true,
+//   configurable: true,
+//   value: svg,
+// });
 
+BaseReactiveComponent.prototype.html = html;
+BaseReactiveComponent.prototype.svg = svg;
 // Object.assign(BaseReactiveComponent.prototype, µhtml);
-// BaseReactiveComponent.prototype.html = html;
-// BaseReactiveComponent.prototype.svg = svg;
 
 // console.log(Object.getOwnPropertyDescriptors(BaseReactiveComponent.prototype));
 
