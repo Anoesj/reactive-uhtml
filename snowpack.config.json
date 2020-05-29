@@ -1,0 +1,8 @@
+{
+  "install": [
+    "uhtml/esm/index.js"
+  ],
+  "installOptions": {
+    "dest": "src/web_modules"
+  }
+}

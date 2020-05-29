@@ -1,0 +1,25 @@
+{
+  "name": "reactive-uhtml",
+  "version": "0.0.1",
+  "description": "",
+  "scripts": {
+    "prepare": "pnpx snowpack install",
+    "serve": "pnpx serve src"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Anoesj/reactive-uhtml.git"
+  },
+  "author": "Anoesj Sadraee",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Anoesj/reactive-uhtml/issues"
+  },
+  "homepage": "https://github.com/Anoesj/reactive-uhtml#readme",
+  "dependencies": {
+    "uhtml": "^1.11.6"
+  },
+  "devDependencies": {
+    "snowpack": "^2.0.0-rc.9"
+  }
+}
