@@ -104,12 +104,7 @@ class BaseReactiveComponent {
 // });
 
 BaseReactiveComponent.prototype.html = function () {
-  const boundArguments = [...arguments].map(argument => {
-    if (typeof argument === 'function') {
-      return argument.bind(this);
-    }
-    return argument;
-  });
+  const boundArguments = [...arguments].map(argument => typeof argument === 'function' ? argument.bind(this) : argument);
   return html.apply(this, boundArguments);
 };
 BaseReactiveComponent.prototype.svg = svg;
