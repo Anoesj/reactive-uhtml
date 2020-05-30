@@ -14,9 +14,9 @@ define('time-passed', class TimePassed extends HTMLElement {
     seconds: 0,
   });
 
-  renderFunction = function () {
+  get template () {
     return this.html`<p>Seconds passed: ${this.data.seconds}</p>`;
-  }.bind(this);
+  }
 
   connectedCallback () {
     this.render();
@@ -54,30 +54,27 @@ define('example-element', class ExampleElement extends HTMLElement {
     timerPaused: false,
   });
 
-  renderFunction = function () {
+  get template () {
+    const { data } = this;
+
     return this.html`
       <h2>🎉 Reactive µhtml web components!</h2>
       <h3>A simple counter</h3>
-      <p>Count: ${this.data.count}</strong><br/>
-      <button onclick="${this.add.bind(this)}">Add</button>
-      <button onclick="${this.remove.bind(this)}" disabled="${this.data.count === 0 || null }">Remove</button></p>
+      <p>Count: ${data.count}</strong><br/>
+      <button onclick="${this.add}">Add</button>
+      <button onclick="${this.remove}" disabled="${data.count === 0 || null }">Remove</button></p>
 
       <h3>A nested reactive web component</h3>
-      <time-passed paused="${this.data.timerPaused}"/>
+      <time-passed paused="${data.timerPaused}"/>
 
       <h3>Control other web component's attributes</h3>
       <input
         id="timer-paused"
         type="checkbox"
-        checked="${this.data.timerPaused ? 'checked' : null}"
-        onclick="${() => { this.data.timerPaused = !this.data.timerPaused; }}"
+        checked="${data.timerPaused ? 'checked' : null}"
+        onclick="${() => { data.timerPaused = !data.timerPaused; }}"
       /><label for="timer-paused">Pause timer</label>
     `;
-  }.bind(this);
-
-  constructor () {
-    super();
-    this.autobind();
   }
 
   add () {
