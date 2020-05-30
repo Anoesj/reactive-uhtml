@@ -39,6 +39,18 @@ class BaseReactiveComponent {
     return 'defer'; // defer|immediately
   }
 
+  autobind () {
+    for (const [propertyName, propertyDescriptor] of Object.entries(Object.getOwnPropertyDescriptors(this.constructor.prototype))) {
+      if (propertyName === 'constructor') continue;
+      // console.log(propertyName, propertyDescriptor);
+      if (typeof propertyDescriptor.value === 'function') {
+        propertyDescriptor.value = propertyDescriptor.value.bind(this);
+        Object.defineProperty(this.constructor.prototype, propertyName, propertyDescriptor);
+        console.log(`Autobound ${propertyName} to ${this.constructor.name}`);
+      }
+    }
+  }
+
   // Makes a data object 'reactive'.
   // NOTE: Will probably only trigger reactivity when Object values are reassigned, not when deeper objects are mutated.
   reactive (data) {

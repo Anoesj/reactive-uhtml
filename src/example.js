@@ -75,6 +75,11 @@ define('example-element', class ExampleElement extends HTMLElement {
     `;
   }.bind(this);
 
+  constructor () {
+    super();
+    this.autobind();
+  }
+
   add () {
     this.data.count++;
   }
