@@ -77,7 +77,7 @@ class BaseReactiveComponent {
 
   render () {
     this.logRendering();
-    render(this, this.renderFunction);
+    render(this, this.renderFunction.bind(this));
   }
 
   logRendering () {

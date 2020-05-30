@@ -14,9 +14,9 @@ define('time-passed', class TimePassed extends HTMLElement {
     seconds: 0,
   });
 
-  renderFunction = function () {
+  renderFunction () {
     return this.html`<p>Seconds passed: ${this.data.seconds}</p>`;
-  }.bind(this);
+  }
 
   connectedCallback () {
     this.render();
@@ -54,7 +54,7 @@ define('example-element', class ExampleElement extends HTMLElement {
     timerPaused: false,
   });
 
-  renderFunction = function () {
+  renderFunction () {
     return this.html`
       <h2>🎉 Reactive µhtml web components!</h2>
       <h3>A simple counter</h3>
@@ -73,7 +73,7 @@ define('example-element', class ExampleElement extends HTMLElement {
         onclick="${() => { this.data.timerPaused = !this.data.timerPaused; }}"
       /><label for="timer-paused">Pause timer</label>
     `;
-  }.bind(this);
+  }
 
   add () {
     this.data.count++;
