@@ -42,6 +42,9 @@ class BaseReactiveComponent {
   // Makes a data object 'reactive'.
   // NOTE: Will probably only trigger reactivity when Object values are reassigned, not when deeper objects are mutated.
   reactive (data) {
+
+    this.boundRenderFunction = this.renderFunction.bind(this);
+
     return new Proxy(data, {
       set: (target, property, value, receiver) => {
         console.log(`%c${this.constructor.name}%c – %cChange detected`, `color: ${colors.green};`, `color: ${colors.greyLight};`, `color: ${colors.greyLight};`);
@@ -77,7 +80,7 @@ class BaseReactiveComponent {
 
   render () {
     this.logRendering();
-    render(this, this.renderFunction.bind(this));
+    render(this, this.boundRenderFunction);
   }
 
   logRendering () {
