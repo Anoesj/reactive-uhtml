@@ -18,15 +18,11 @@ define('time-passed', class TimePassed extends HTMLElement {
     return this.html`<p>Seconds passed: ${this.data.seconds}</p>`;
   }.bind(this);
 
-  intervalFn = null;
-
-  addSecond () {
-    this.data.seconds++;
-  }
-
   connectedCallback () {
     this.render();
   }
+
+  intervalFn = null;
 
   attributeChangedCallback (name, oldValue, newValue) {
     if (name === 'paused') {
@@ -39,6 +35,10 @@ define('time-passed', class TimePassed extends HTMLElement {
         this.intervalFn = setInterval(this.addSecond.bind(this), 1000);
       }
     }
+  }
+
+  addSecond () {
+    this.data.seconds++;
   }
 
 });
@@ -56,12 +56,16 @@ define('example-element', class ExampleElement extends HTMLElement {
 
   renderFunction = function () {
     return this.html`
-      <strong>Count: ${this.data.count}</strong><br/>
+      <h2>🎉 Reactive µhtml web components!</h2>
+      <h3>A simple counter</h3>
+      <p>Count: ${this.data.count}</strong><br/>
       <button onclick="${this.add.bind(this)}">Add</button>
-      <button onclick="${this.remove.bind(this)}" disabled="${this.data.count === 0 || null }">Remove</button>
+      <button onclick="${this.remove.bind(this)}" disabled="${this.data.count === 0 || null }">Remove</button></p>
 
+      <h3>A nested reactive web component</h3>
       <time-passed paused="${this.data.timerPaused}"/>
 
+      <h3>Control other web component's attributes</h3>
       <input
         id="timer-paused"
         type="checkbox"
@@ -96,58 +100,3 @@ define('example-element', class ExampleElement extends HTMLElement {
   }
 
 });
-
-// define('example-element', class ExampleElement {
-
-//   static get observedAttributes () {
-//     return ['foo'];
-//   }
-
-//   test = 'class fields working';
-
-//   connectedCallback () {
-//     console.log(this.test); // :(
-
-//     this.data = this.reactive({
-//       counter: 1,
-//     });
-
-//     this.renderFunction = function () {
-//       return this.html`<strong>🎉 I can render myself ${this.data.counter}</strong>`;
-//     }.bind(this);
-
-//     this.render();
-
-//     setInterval(() => {
-//       this.data.counter++;
-//     }, 1000);
-//   }
-
-//   disconnectedCallback () {
-//     console.log(this, 'DISCONNECTED');
-//   }
-
-//   attributeChangedCallback (name, oldValue, newValue) {
-//     console.log(this, 'ATTRIBUTE CHANGED:', {
-//       name,
-//       oldValue,
-//       newValue,
-//     });
-//   }
-
-// });
-
-// define('another-element', class {
-
-//   connectedCallback () {
-//     console.log(this, 'CONNECTED');
-//   }
-
-// }, 'p');
-
-// document.body.appendChild(document.createElement('test-element'));
-// document.body.appendChild(document.createElement('another-element'));
-
-// for (const el of document.body.children) {
-//   customElements.upgrade(el);
-// }
