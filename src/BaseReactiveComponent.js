@@ -1,37 +1,11 @@
 import { html, svg, render } from '../../web_modules/uhtml/esm/index.js';
-// import * as µhtml from '../../web_modules/uhtml/esm/index.js';
+import { RenderQueue } from './RenderQueue.js';
 
 const colors = {
   blue: '#1877f2',
   green: 'MediumSeaGreen',
   greyLight: '#dee5ec',
 };
-
-const queue = new class Queue {
-
-  #componentsToRender = new Set();
-
-  constructor () {
-    setInterval(() => {
-      if (this.#componentsToRender.size) {
-        this.tick();
-      }
-    }, 5);
-  }
-
-  tick () {
-    for (const component of this.#componentsToRender) {
-      component.render();
-    }
-
-    this.#componentsToRender.clear();
-  }
-
-  render (component) {
-    this.#componentsToRender.add(component);
-  }
-
-}
 
 class BaseReactiveComponent {
 
@@ -93,11 +67,11 @@ class BaseReactiveComponent {
 
         switch (this.renderStrategy) {
           case 'defer':
-            // Queue prevents double renders when changing multiple reactive variables in a row.
-            queue.render(this);
+            // RenderQueue prevents double renders when changing multiple reactive variables in a row.
+            RenderQueue.render(this);
             break;
           case 'immediately':
-            // Don't defer renders
+            // Don't use RenderQueue, just render immediately instead.
             this.render();
             break;
           default:
