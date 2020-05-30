@@ -1,5 +1,16 @@
 import { define } from './define.js';
 
+/** Alternative 1: */
+// customElements.define('time-passed', makeReactiveUhtml(TimePassed));
+// Pro: it is visible what the framework does
+// Con: it is more difficult to write out
+// Con: You have to define the full class first and then define the customElement or wrap the whole class.
+
+/** Alternative 2: */
+// define('time-passed', class TimePassed extends makeReactiveUhtml(HTMLElement) {
+// Pro: it is visible what the framework does
+// Con: the given class is made reactive, a layer was added in between instead on top.
+
 define('time-passed', class TimePassed extends HTMLElement {
 
   get renderStrategy () {
@@ -59,8 +70,8 @@ define('example-element', class ExampleElement extends HTMLElement {
       <h2>🎉 Reactive µhtml web components!</h2>
       <h3>A simple counter</h3>
       <p>Count: ${this.data.count}</strong><br/>
-      <button onclick="${this.add.bind(this)}">Add</button>
-      <button onclick="${this.remove.bind(this)}" disabled="${this.data.count === 0 || null }">Remove</button></p>
+      <button onclick="${this.add}">Add</button>
+      <button onclick="${this.remove}" disabled="${this.data.count === 0 || null }">Remove</button></p>
 
       <h3>A nested reactive web component</h3>
       <time-passed paused="${this.data.timerPaused}"/>

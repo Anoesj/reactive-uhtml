@@ -100,7 +100,15 @@ class BaseReactiveComponent {
 //   value: svg,
 // });
 
-BaseReactiveComponent.prototype.html = html;
+BaseReactiveComponent.prototype.html = function () {
+  const boundArguments = [...arguments].map(argument => {
+    if (typeof argument === 'function') {
+      return argument.bind(this);
+    }
+    return argument;
+  });
+  return html.apply(this, boundArguments);
+};
 BaseReactiveComponent.prototype.svg = svg;
 // Object.assign(BaseReactiveComponent.prototype, µhtml);
 
