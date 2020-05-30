@@ -94,10 +94,6 @@ define('example-element', class ExampleElement extends HTMLElement {
     this.data.count--;
   }
 
-  connectedCallback () {
-    this.render();
-  }
-
   disconnectedCallback () {
     console.log('DISCONNECTED', this);
   }

@@ -87,6 +87,10 @@ class BaseReactiveComponent {
     console.log(`%c${this.constructor.name}%c – %cRendering (strategy: ${this.renderStrategy})`, `color: ${colors.green};`, `color: ${colors.greyLight};`, `color: ${colors.blue};`);
   }
 
+  connectedCallback () {
+    this.render();
+  }
+
 }
 
 // Object.defineProperty(BaseReactiveComponent.prototype, 'html', {
