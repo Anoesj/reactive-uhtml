@@ -1,5 +1,6 @@
 import { html, svg, render } from '../../web_modules/uhtml/esm/index.js';
 import { RenderQueue } from './RenderQueue.js';
+import { Dep } from './Dep.js';
 
 const colors = {
   blue: '#1877f2',
@@ -31,7 +32,7 @@ class BaseReactiveComponent {
       if (typeof propertyDescriptor.value === 'function') {
         propertyDescriptor.value = propertyDescriptor.value.bind(this);
         if (Reflect.defineProperty(this.constructor.prototype, propertyName, propertyDescriptor)) {
-          console.log(`%c%s%c – %cBound property “%s”`, `color: ${colors.green};`, this.constructor.name, `color: ${colors.greyLight};`, `color: ${colors.grey};`, propertyName);
+          // console.log(`%c%s%c – %cBound property “%s”`, `color: ${colors.green};`, this.constructor.name, `color: ${colors.greyLight};`, `color: ${colors.grey};`, propertyName);
         }
       }
       else {
@@ -50,7 +51,7 @@ class BaseReactiveComponent {
         if (bindGetter || bindSetter) {
           if (Reflect.defineProperty(this.constructor.prototype, propertyName, propertyDescriptor)) {
             const getterAndOrSetterString = (bindGetter && bindSetter) ? 'getter/setter' : bindGetter ? 'getter' : 'setter';
-            console.log(`%c%s%c – %cBound property %s “%s”`, `color: ${colors.green};`, this.constructor.name, `color: ${colors.greyLight};`, `color: ${colors.grey};`, getterAndOrSetterString, propertyName);
+            // console.log(`%c%s%c – %cBound property %s “%s”`, `color: ${colors.green};`, this.constructor.name, `color: ${colors.greyLight};`, `color: ${colors.grey};`, getterAndOrSetterString, propertyName);
           }
         }
       }
@@ -60,25 +61,79 @@ class BaseReactiveComponent {
   // Makes a data object 'reactive'.
   // NOTE: Will probably only trigger reactivity when Object values are reassigned, not when deeper objects are mutated.
   reactive (data) {
-    return new Proxy(data, {
-      set: (target, property, value, receiver) => {
-        console.log(`%c%s%c – %cChange detected`, `color: ${colors.green};`, this.constructor.name, `color: ${colors.greyLight};`, `color: ${colors.grey};`);
-        const success = Reflect.set(target, property, value, receiver);
+    const deps = new Map();
 
-        switch (this.renderStrategy) {
-          case 'defer':
-            // RenderQueue prevents double renders when changing multiple reactive variables in a row.
-            RenderQueue.render(this);
-            break;
-          case 'immediately':
-            // Don't use RenderQueue, just render immediately instead.
-            this.render();
-            break;
-          default:
-            throw new Error('Unknown render strategy.');
-        }
-        return success;
+    // REVIEW: or Object.entries(Object.getOwnPropertyDescriptors(data))?
+    for (const key of Object.keys(data)) {
+      deps.set(key, new Dep());
+      // let value = data[key];
+      // Object.defineProperty(data, key, {
+      //   get () {
+      //     return value;
+      //   },
+      //   set (newValue) {
+      //     // console.log(`Set ${key} to ${newValue}`, data);
+      //     value = newValue;
+      //   },
+      // });
+    }
+
+    // const self = this;
+
+    return new Proxy(data, {
+
+      get (target, property, receiver) {
+        // Register the callee as a subscriber
+        // TODO: subscribe should be called with the watcher function as argument
+        deps.get(property).subscribe();
+        // Perform the actual get
+        const result = Reflect.get(...arguments);
+        return result;
       },
+
+      set (target, property, value, receiver) {
+        // console.log(`%c%s%c – %cChange detected`, `color: ${colors.green};`, this.constructor.name, `color: ${colors.greyLight};`, `color: ${colors.grey};`);
+
+        // If property is new, add to deps
+        if (!deps.has(property)) deps.set(property, new Dep());
+        // Perform the actual set
+        const result = Reflect.set(...arguments);
+        // Notify subscribers of property
+        if (result === true) deps.get(property).notify();
+        // Return success boolean
+        return result;
+      },
+
+      deleteProperty (target, property) {
+        if (property in target) {
+          // Delete the property from deps
+          deps.delete(property);
+          // Perform the actual delete
+          const result = Reflect.deleteProperty(target, property);
+          return result;
+        }
+      },
+
+      // set: function notify (target, property, value, receiver) {
+      //   // console.log(`%c%s%c – %cChange detected`, `color: ${colors.green};`, this.constructor.name, `color: ${colors.greyLight};`, `color: ${colors.grey};`);
+      //   const success = Reflect.set(...arguments);
+
+      //   switch (self.renderStrategy) {
+      //     case 'defer':
+      //       // RenderQueue prevents double renders when changing multiple reactive variables in a row.
+      //       RenderQueue.render(self);
+      //       break;
+      //     case 'immediately':
+      //       // Don't use RenderQueue, just render immediately instead.
+      //       self.render();
+      //       break;
+      //     default:
+      //       throw new Error('Unknown render strategy.');
+      //   }
+
+      //   return success;
+      // },
+
     });
   }
 
@@ -94,7 +149,7 @@ class BaseReactiveComponent {
   // }
 
   logRendering () {
-    console.log(`%c${this.constructor.name}%c – %cRendering (strategy: ${this.renderStrategy})`, `color: ${colors.green};`, `color: ${colors.greyLight};`, `color: ${colors.blue};`);
+    // console.log(`%c${this.constructor.name}%c – %cRendering (strategy: ${this.renderStrategy})`, `color: ${colors.green};`, `color: ${colors.greyLight};`, `color: ${colors.blue};`);
   }
 
 }

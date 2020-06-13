@@ -19,6 +19,7 @@ define('time-passed', class TimePassed extends HTMLElement {
   }
 
   connectedCallback () {
+    // console.log(this.data);
     this.render();
   }
 
@@ -51,7 +52,7 @@ define('example-element', class ExampleElement extends HTMLElement {
 
   data = this.reactive({
     count: 0,
-    timerPaused: false,
+    timerPaused: true,
   });
 
   get template () {
@@ -77,6 +78,14 @@ define('example-element', class ExampleElement extends HTMLElement {
     `;
   }
 
+  // IDEA: All getters are computed functions by default (this.template too, but when template changes, this.render needs to be called)
+  // IDEA: setters for the same property automatically trigger reactivity too
+  get computed () {
+    console.log(this.data.count + 1);
+  }
+
+  // test = this.watcher -> nope, needs to be method
+
   add () {
     this.data.count++;
   }
@@ -89,16 +98,8 @@ define('example-element', class ExampleElement extends HTMLElement {
     this.render();
   }
 
-  disconnectedCallback () {
-    console.log('DISCONNECTED', this);
-  }
+  disconnectedCallback () {}
 
-  attributeChangedCallback (name, oldValue, newValue) {
-    console.log('ATTRIBUTE CHANGED:', {
-      name,
-      oldValue,
-      newValue,
-    });
-  }
+  attributeChangedCallback (name, oldValue, newValue) {}
 
 });
