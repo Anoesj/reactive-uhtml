@@ -58,8 +58,8 @@ define('example-element', class ExampleElement extends HTMLElement {
   }
 
   data = this.reactive({
-    // count: 0,
-    count: false,
+    count: 0,
+    // count: false,
     otherCount: 0,
     timerPaused: true,
   });
@@ -75,33 +75,30 @@ define('example-element', class ExampleElement extends HTMLElement {
   //   ];
   // }
 
-  get template () {
+  template (data) {
+    // NOTE: Use data for reading, this.data for writing!
     const {
       count,
       // timerPaused,
-    } = this.data;
+    } = data;
 
-    // REVIEW: Problem: data.count === 0 won't evaluate data.count as a number.
-    // REVIEW: Problem: data.count == 0 will, but if data.count was originally a Boolean false, data.count == 0 will evaluate true. This is because we don't have control over what the == operator does. 
-    console.log('Gonna request count in a number of ways');
-    console.log({
-      'count': count,
-      'count == 0': count == 0,
-      'count === 0': count === 0,
-      'Number(count) === 0': Number(count) === 0,
-    });
-
-    // if (count && count == 0) {
-    //   console.log('Requested count', count);
-    // }
+    // REVIEW: Problem: this.data.count === 0 won't evaluate this.data.count as a number, it will be a ReactiveHole instance instead.
+    // REVIEW: Problem: this.data.count == 0 will, but if this.data.count's original value is Boolean false, this.data.count == 0 will evaluate true. This is because we don't have control over what the == operator does. 
+    // console.log('Gonna request count in a number of ways');
+    // console.table({
+    //   'count': count,
+    //   'count == 0': count == 0,
+    //   'count === 0': count === 0,
+    //   'Number(count) === 0': Number(count) === 0,
+    // });
 
     return this.html`
       <h2>🎉 Reactive µhtml web components!</h2>
       <h3>A simple counter</h3>
 
-      <p>Count: ${count}</strong><br/>
+      <p>Count: ${this.data.count}</strong><br/>
       <button onclick="${this.addCount}">Add</button>
-      <button onclick="${this.removeCount}" disabled="${count == 0 || null}">Remove</button></p>
+      <button onclick="${this.removeCount}" disabled="${count === 0 || null}">Remove</button></p>
 
       <p>Other count times 10: ${this.otherCountTimesTen} (computed)</strong><br/>
       <button onclick="${this.addOtherCount}">Add</button>

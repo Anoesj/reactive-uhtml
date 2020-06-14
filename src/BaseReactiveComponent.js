@@ -25,7 +25,12 @@ class BaseReactiveComponent {
     }
 
     this.logRendering();
-    render(this, this.template);
+
+    // Provide the original values instead of ReactiveHole instances as values
+    const data = Object.fromEntries(
+      Object.entries(this.data).map(([property, hole]) => [property, hole.value])
+    );
+    render(this, this.template(data));
   }
 
   _autobind () {
@@ -97,7 +102,7 @@ class BaseReactiveComponent {
           declareReactiveProperty(property, value);
         }
 
-        Reflect.get(target, property, receiver).values = [value];
+        Reflect.get(target, property, receiver).value = value;
         deps.get(property).notify();
         return true;
 
@@ -159,7 +164,8 @@ class BaseReactiveComponent {
 
 }
 
-BaseReactiveComponent.prototype.html = html;
+// BaseReactiveComponent.prototype.html = html;
+BaseReactiveComponent.prototype.html = reactiveHtml;
 BaseReactiveComponent.prototype.svg = svg;
 
 export {

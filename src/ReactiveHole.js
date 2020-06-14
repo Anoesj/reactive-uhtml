@@ -12,18 +12,22 @@ export class ReactiveHole extends Hole {
 
     return new Proxy(this, {
       get: (target, property, receiver) => {
-        console.log('getting', property);
+        console.log('[ReactiveHole] getting property %s', property);
         return Reflect.get(target, property, receiver);
       },
-      // set: (target, property, value, receiver) => {
-      //   console.log('setting', property, value);
-      //   return Reflect.set(target, property, value, receiver);
-      // },
+      set: (target, property, value, receiver) => {
+        console.log('[ReactiveHole] setting property %s', property, value);
+        return Reflect.set(target, property, value, receiver);
+      },
     });
   }
 
   get value () {
     return this.values[0];
+  }
+
+  set value (value) {
+    this.values[0] = value;
   }
 
   // [Symbol.match] (string) {
