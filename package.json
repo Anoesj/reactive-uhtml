@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "prepare": "pnpx snowpack install",
-    "serve": "pnpx browser-sync ./src -w --startPath '/example.html' --logLevel 'warn'"
+    "serve": "node ./scripts/serve.js"
   },
   "repository": {
     "type": "git",
