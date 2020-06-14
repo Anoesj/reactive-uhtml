@@ -1,6 +1,10 @@
 import { html, svg, render } from '../../web_modules/uhtml/esm/index.js';
-import { RenderQueue } from './RenderQueue.js';
 import { Dep } from './Dep.js';
+import { ReactiveHole } from './ReactiveHole.js';
+
+// TODO: Try same with svg
+const reactiveHtml = (template, ...values) => new ReactiveHole('html', template, values);
+Object.defineProperties(reactiveHtml, Object.getOwnPropertyDescriptors(html));
 
 const colors = {
   blue: '#1877f2',
@@ -11,7 +15,7 @@ const colors = {
 class BaseReactiveComponent {
 
   get renderStrategy () {
-    return 'defer'; // defer|immediately
+    return 'defer'; // 'defer' | 'immediately'
   }
 
   render () {
@@ -50,7 +54,7 @@ class BaseReactiveComponent {
 
         if (bindGetter || bindSetter) {
           if (Reflect.defineProperty(this.constructor.prototype, propertyName, propertyDescriptor)) {
-            const getterAndOrSetterString = (bindGetter && bindSetter) ? 'getter/setter' : bindGetter ? 'getter' : 'setter';
+            // const getterAndOrSetterString = (bindGetter && bindSetter) ? 'getter/setter' : bindGetter ? 'getter' : 'setter';
             // console.log(`%c%s%c – %cBound property %s “%s”`, `color: ${colors.green};`, this.constructor.name, `color: ${colors.greyLight};`, `color: ${colors.grey};`, getterAndOrSetterString, propertyName);
           }
         }
@@ -63,45 +67,46 @@ class BaseReactiveComponent {
   reactive (data) {
     const deps = new Map();
 
-    // REVIEW: or Object.entries(Object.getOwnPropertyDescriptors(data))?
-    for (const key of Object.keys(data)) {
-      deps.set(key, new Dep());
-      // let value = data[key];
-      // Object.defineProperty(data, key, {
-      //   get () {
-      //     return value;
-      //   },
-      //   set (newValue) {
-      //     // console.log(`Set ${key} to ${newValue}`, data);
-      //     value = newValue;
-      //   },
-      // });
+    const declareReactiveProperty = (property, value) => {
+      deps.set(property, new Dep(property));
+      data[property] = reactiveHtml`${value}`;
+    };
+
+    for (const [property, value] of Object.entries(data)) {
+      // Replace the value with a ReactiveHole instance.
+      declareReactiveProperty(property, value);
     }
 
-    // const self = this;
+    // console.log(data);
 
     return new Proxy(data, {
 
-      get (target, property, receiver) {
+      get: (target, property, receiver) => {
         // Register the callee as a subscriber
         // TODO: subscribe should be called with the watcher function as argument
-        deps.get(property).subscribe();
+        deps.get(property).subscribe(this.render);
         // Perform the actual get
-        const result = Reflect.get(...arguments);
-        return result;
+        return Reflect.get(target, property, receiver);
       },
 
-      set (target, property, value, receiver) {
-        // console.log(`%c%s%c – %cChange detected`, `color: ${colors.green};`, this.constructor.name, `color: ${colors.greyLight};`, `color: ${colors.grey};`);
+      set: (target, property, value, receiver) => {
+        console.log(`%c%s%c – %cChange detected`, `color: ${colors.green};`, this.constructor.name, `color: ${colors.greyLight};`, `color: ${colors.grey};`);
 
-        // If property is new, add to deps
-        if (!deps.has(property)) deps.set(property, new Dep());
-        // Perform the actual set
-        const result = Reflect.set(...arguments);
-        // Notify subscribers of property
-        if (result === true) deps.get(property).notify();
+        // If property is added after the "wrapping in Proxy" phase, add to deps
+        if (!deps.has(property)) {
+          declareReactiveProperty(property, value);
+        }
+
+        Reflect.get(target, property, receiver).values = [value];
+        deps.get(property).notify();
+        return true;
+
+        // // Perform the actual set
+        // const result = Reflect.set(target, property, value, receiver);
+        // // Notify subscribers of property
+        // if (result === true) deps.get(property).notify();
         // Return success boolean
-        return result;
+        // return result;
       },
 
       deleteProperty (target, property) {
@@ -149,7 +154,7 @@ class BaseReactiveComponent {
   // }
 
   logRendering () {
-    // console.log(`%c${this.constructor.name}%c – %cRendering (strategy: ${this.renderStrategy})`, `color: ${colors.green};`, `color: ${colors.greyLight};`, `color: ${colors.blue};`);
+    console.log(`%c${this.constructor.name}%c – %cRendering (strategy: ${this.renderStrategy})`, `color: ${colors.green};`, `color: ${colors.greyLight};`, `color: ${colors.blue};`);
   }
 
 }

@@ -1,6 +1,7 @@
 {
   "install": [
-    "uhtml/esm/index.js"
+    "uhtml/esm/index.js",
+    "uhtml/esm/rabbit.js"
   ],
   "installOptions": {
     "dest": "src/web_modules"

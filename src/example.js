@@ -44,6 +44,13 @@ define('time-passed', class TimePassed extends HTMLElement {
 
 });
 
+// let target;
+// function bla (fn) {
+//   target = fn;
+//   fn();
+//   target = null;
+// }
+
 define('example-element', class ExampleElement extends HTMLElement {
 
   static get observedAttributes () {
@@ -51,47 +58,90 @@ define('example-element', class ExampleElement extends HTMLElement {
   }
 
   data = this.reactive({
-    count: 0,
+    // count: 0,
+    count: false,
+    otherCount: 0,
     timerPaused: true,
   });
 
+  // TODO: computeds array existing of names of getter properties should be iterated. they should be cached instead of called everytime they're referenced.
+  computeds = [
+    'otherCountTimesTen',
+  ];
+
+  // get computeds () {
+  //   return [
+  //     'otherCountTimesTen',
+  //   ];
+  // }
+
   get template () {
-    const { data } = this;
+    const {
+      count,
+      // timerPaused,
+    } = this.data;
+
+    // REVIEW: Problem: data.count === 0 won't evaluate data.count as a number.
+    // REVIEW: Problem: data.count == 0 will, but if data.count was originally a Boolean false, data.count == 0 will evaluate true. This is because we don't have control over what the == operator does. 
+    console.log('Gonna request count in a number of ways');
+    console.log({
+      'count': count,
+      'count == 0': count == 0,
+      'count === 0': count === 0,
+      'Number(count) === 0': Number(count) === 0,
+    });
+
+    // if (count && count == 0) {
+    //   console.log('Requested count', count);
+    // }
 
     return this.html`
       <h2>🎉 Reactive µhtml web components!</h2>
       <h3>A simple counter</h3>
-      <p>Count: ${data.count}</strong><br/>
-      <button onclick="${this.add}">Add</button>
-      <button onclick="${this.remove}" disabled="${data.count === 0 || null }">Remove</button></p>
 
-      <h3>A nested reactive web component</h3>
-      <time-passed paused="${data.timerPaused}"/>
+      <p>Count: ${count}</strong><br/>
+      <button onclick="${this.addCount}">Add</button>
+      <button onclick="${this.removeCount}" disabled="${count == 0 || null}">Remove</button></p>
 
-      <h3>Control other web component's attributes</h3>
-      <input
-        id="timer-paused"
-        type="checkbox"
-        checked="${data.timerPaused ? 'checked' : null}"
-        onclick="${() => { data.timerPaused = !data.timerPaused; }}"
-      /><label for="timer-paused">Pause timer</label>
+      <p>Other count times 10: ${this.otherCountTimesTen} (computed)</strong><br/>
+      <button onclick="${this.addOtherCount}">Add</button>
+      <button onclick="${this.removeOtherCount}">Remove</button></p>
     `;
+    // <time-passed paused="${timerPaused}"/>
+    // <h3>A nested reactive web component</h3>
+
+    // <h3>Control other web component's attributes</h3>
+    // <input
+    //   id="timer-paused"
+    //   type="checkbox"
+    //   checked="${timerPaused ? 'checked' : null}"
+    //   onclick="${() => { this.data.timerPaused = !timerPaused; }}"
+    // /><label for="timer-paused">Pause timer</label>
   }
 
   // IDEA: All getters are computed functions by default (this.template too, but when template changes, this.render needs to be called)
   // IDEA: setters for the same property automatically trigger reactivity too
-  get computed () {
-    console.log(this.data.count + 1);
+  get otherCountTimesTen () {
+    // console.log('Invoked getter otherCountTimesTen');
+    return this.data.otherCount * 10;
   }
 
   // test = this.watcher -> nope, needs to be method
 
-  add () {
+  addCount () {
     this.data.count++;
   }
 
-  remove () {
+  removeCount () {
     this.data.count--;
+  }
+
+  addOtherCount () {
+    this.data.otherCount++;
+  }
+
+  removeOtherCount () {
+    this.data.otherCount--;
   }
 
   connectedCallback () {
