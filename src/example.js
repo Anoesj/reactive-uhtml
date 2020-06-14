@@ -18,11 +18,6 @@ define('time-passed', class TimePassed extends HTMLElement {
     return this.html`<p>Seconds passed: ${this.data.seconds}</p>`;
   }
 
-  connectedCallback () {
-    // console.log(this.data);
-    this.render();
-  }
-
   intervalFn = null;
 
   attributeChangedCallback (name, oldValue, newValue) {
@@ -59,15 +54,16 @@ define('example-element', class ExampleElement extends HTMLElement {
 
   data = this.reactive({
     count: 0,
-    // count: false,
     otherCount: 0,
     timerPaused: true,
+    someMap: new Map([['foo', 'bar']]),
+    // someArray: ['a'],
   });
 
   // TODO: computeds array existing of names of getter properties should be iterated. they should be cached instead of called everytime they're referenced.
-  computeds = [
-    'otherCountTimesTen',
-  ];
+  // computeds = [
+  //   'otherCountTimesTen',
+  // ];
 
   // get computeds () {
   //   return [
@@ -75,35 +71,41 @@ define('example-element', class ExampleElement extends HTMLElement {
   //   ];
   // }
 
-  template (data) {
+  get template () {
     // NOTE: Use data for reading, this.data for writing!
     const {
       count,
-      // timerPaused,
-    } = data;
+      timerPaused,
+      yoo,
+      someMap,
+      // someArray,
+    } = this.data;
 
-    // REVIEW: Problem: this.data.count === 0 won't evaluate this.data.count as a number, it will be a ReactiveHole instance instead.
-    // REVIEW: Problem: this.data.count == 0 will, but if this.data.count's original value is Boolean false, this.data.count == 0 will evaluate true. This is because we don't have control over what the == operator does. 
-    // console.log('Gonna request count in a number of ways');
-    // console.table({
-    //   'count': count,
-    //   'count == 0': count == 0,
-    //   'count === 0': count === 0,
-    //   'Number(count) === 0': Number(count) === 0,
-    // });
+    const mapList = Array.from(someMap).map(([key, value]) => this.html`<li>${key}: ${value}</li>`);
 
     return this.html`
+      <h1>${yoo}</h1>
       <h2>🎉 Reactive µhtml web components!</h2>
       <h3>A simple counter</h3>
 
-      <p>Count: ${this.data.count}</strong><br/>
+      <p>Count: ${count}</strong><br/>
       <button onclick="${this.addCount}">Add</button>
       <button onclick="${this.removeCount}" disabled="${count === 0 || null}">Remove</button></p>
 
       <p>Other count times 10: ${this.otherCountTimesTen} (computed)</strong><br/>
       <button onclick="${this.addOtherCount}">Add</button>
       <button onclick="${this.removeOtherCount}">Remove</button></p>
+
+      <h3>Reactive Map</h3>
+      <ul>
+        ${mapList}
+      </ul>
     `;
+
+    // <time-passed paused="${timerPaused}"/>
+    // <ul>
+    //   ${someArray.map(item => this.html`<li>${item}</li>`)}
+    // </ul>
     // <time-passed paused="${timerPaused}"/>
     // <h3>A nested reactive web component</h3>
 
@@ -112,18 +114,17 @@ define('example-element', class ExampleElement extends HTMLElement {
     //   id="timer-paused"
     //   type="checkbox"
     //   checked="${timerPaused ? 'checked' : null}"
-    //   onclick="${() => { this.data.timerPaused = !timerPaused; }}"
+    //   onclick="${() => { timerPaused = !timerPaused; }}"
     // /><label for="timer-paused">Pause timer</label>
   }
 
   // IDEA: All getters are computed functions by default (this.template too, but when template changes, this.render needs to be called)
   // IDEA: setters for the same property automatically trigger reactivity too
+  // TODO: Cache computeds
   get otherCountTimesTen () {
     // console.log('Invoked getter otherCountTimesTen');
     return this.data.otherCount * 10;
   }
-
-  // test = this.watcher -> nope, needs to be method
 
   addCount () {
     this.data.count++;
@@ -142,11 +143,26 @@ define('example-element', class ExampleElement extends HTMLElement {
   }
 
   connectedCallback () {
-    this.render();
+    this.data.yoo = 'yooooo';
+    // setTimeout(() => {
+    //   console.log(this.querySelector('time-passed'));
+    // }, 500);
+    // setInterval(() => {
+    //   console.log(this.data.someArray);
+    //   this.data.someArray.push(Math.random());
+    // }, 1000);
+    const randomFoos = ['bar', 'baz', 'lorem', 'ipsum', 'dolor', 'sit', 'amet'];
+    let index = 0;
+    setInterval(() => {
+      if (index === randomFoos.length - 1) index = 0;
+      else index++;
+      this.data.someMap.set('foo', randomFoos[index]);
+      // this.data.someArray.push(Math.random());
+    }, 1000);
   }
 
-  disconnectedCallback () {}
+  // disconnectedCallback () {}
 
-  attributeChangedCallback (name, oldValue, newValue) {}
+  // attributeChangedCallback (name, oldValue, newValue) {}
 
 });

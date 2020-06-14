@@ -15,10 +15,9 @@ export class Dep {
   }
 
   notify () {
-    for (const watcher of this.#subscribers) {
+    for (const watchingElement of this.#subscribers) {
       console.log(`Triggering watcher for property “${this.#property}”`);
-      // RenderQueue.render
-      watcher();
+      RenderQueue.render(watchingElement);
     }
   }
 

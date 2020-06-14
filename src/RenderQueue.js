@@ -20,4 +20,10 @@ export const RenderQueue = new class RenderQueue {
     this.#componentsToRender.add(component);
   }
 
+  // ['test.hallo'] () {
+  //   console.log('yo');
+  // }
+
 }
+
+// console.log(RenderQueue['test.hallo']);

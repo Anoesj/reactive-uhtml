@@ -1,10 +1,7 @@
 import { html, svg, render } from '../../web_modules/uhtml/esm/index.js';
-import { Dep } from './Dep.js';
-import { ReactiveHole } from './ReactiveHole.js';
-
-// TODO: Try same with svg
-const reactiveHtml = (template, ...values) => new ReactiveHole('html', template, values);
-Object.defineProperties(reactiveHtml, Object.getOwnPropertyDescriptors(html));
+// import { Dep } from './Dep.js';
+import { RenderQueue } from './RenderQueue.js';
+import { ReactiveMap } from './ReactiveMap.js';
 
 const colors = {
   blue: '#1877f2',
@@ -14,8 +11,8 @@ const colors = {
 
 class BaseReactiveComponent {
 
-  get renderStrategy () {
-    return 'defer'; // 'defer' | 'immediately'
+  connectedCallback () {
+    this.render();
   }
 
   render () {
@@ -25,12 +22,7 @@ class BaseReactiveComponent {
     }
 
     this.logRendering();
-
-    // Provide the original values instead of ReactiveHole instances as values
-    const data = Object.fromEntries(
-      Object.entries(this.data).map(([property, hole]) => [property, hole.value])
-    );
-    render(this, this.template(data));
+    render(this, this.template);
   }
 
   _autobind () {
@@ -70,81 +62,88 @@ class BaseReactiveComponent {
   // Makes a data object 'reactive'.
   // NOTE: Will probably only trigger reactivity when Object values are reassigned, not when deeper objects are mutated.
   reactive (data) {
-    const deps = new Map();
+    console.log('Making data reactive:', data);
 
-    const declareReactiveProperty = (property, value) => {
-      deps.set(property, new Dep(property));
-      data[property] = reactiveHtml`${value}`;
-    };
+    // const deps = new Map();
 
-    for (const [property, value] of Object.entries(data)) {
-      // Replace the value with a ReactiveHole instance.
-      declareReactiveProperty(property, value);
+    const declareReactiveProperty = (property, value, data) => {
+      // if (Array.isArray(value)) {
+      //   data[property] = this.reactive(value);
+      // }
+
+      // If value is a Map, replace it with a ReactiveMap and let ReactiveMap signal us on change.
+      if (value instanceof Map) {
+        const reactiveMap = new ReactiveMap(value.entries());
+        reactiveMap.onSet = () => void RenderQueue.render(this);
+        data[property] = reactiveMap;
+      }
+
+      // TODO: Object, Array, Set, WeakMap, WeakSet and probably more...
+
+      // deps.set(property, new Dep(property));
     }
 
-    // console.log(data);
+    for (const [property, value] of Object.entries(data)) {
+      declareReactiveProperty(property, value, data);
+    }
 
-    return new Proxy(data, {
+    const reactiveData = new Proxy(data, {
 
       get: (target, property, receiver) => {
-        // Register the callee as a subscriber
-        // TODO: subscribe should be called with the watcher function as argument
-        deps.get(property).subscribe(this.render);
+        console.log('Getting', property);
+        // Register the render function as a subscriber
+        // debugger;
+        // const descriptor = Reflect.getOwnPropertyDescriptor(target, property);
+        // if (descriptor) {
+        //   if (descriptor.enumerable === true) {
+        //     console.log(property);
+        //     // deps.get(property).subscribe(this);
+        //   }
+        // }
         // Perform the actual get
         return Reflect.get(target, property, receiver);
       },
 
       set: (target, property, value, receiver) => {
-        console.log(`%c%s%c – %cChange detected`, `color: ${colors.green};`, this.constructor.name, `color: ${colors.greyLight};`, `color: ${colors.grey};`);
+        console.log(`%c%s%c – %cChange detected for property %s`, `color: ${colors.green};`, this.constructor.name, `color: ${colors.greyLight};`, `color: ${colors.grey};`, property);
 
         // If property is added after the "wrapping in Proxy" phase, add to deps
-        if (!deps.has(property)) {
-          declareReactiveProperty(property, value);
+        // TODO: This will break right now. We need to be able to detect which properties we've already made reactive
+        // if (!deps.has(property)) {
+        //   declareReactiveProperty(property, value, target);
+        // }
+
+        // Perform the actual set
+        const result = Reflect.set(target, property, value, receiver);
+        // Notify subscribers of property
+        if (result === true) {
+          RenderQueue.render(this);
+          // const depInstance = deps.get(property);
+          // console.warn('Notifying dep', depInstance);
+          // depInstance.notify();
         }
-
-        Reflect.get(target, property, receiver).value = value;
-        deps.get(property).notify();
-        return true;
-
-        // // Perform the actual set
-        // const result = Reflect.set(target, property, value, receiver);
-        // // Notify subscribers of property
-        // if (result === true) deps.get(property).notify();
         // Return success boolean
-        // return result;
+        return result;
       },
 
       deleteProperty (target, property) {
         if (property in target) {
           // Delete the property from deps
-          deps.delete(property);
+          // deps.delete(property);
           // Perform the actual delete
           const result = Reflect.deleteProperty(target, property);
+          if (result === true) {
+            RenderQueue.render(this);
+          }
+          // Return success boolean
           return result;
         }
       },
 
-      // set: function notify (target, property, value, receiver) {
-      //   // console.log(`%c%s%c – %cChange detected`, `color: ${colors.green};`, this.constructor.name, `color: ${colors.greyLight};`, `color: ${colors.grey};`);
-      //   const success = Reflect.set(...arguments);
-
-      //   switch (self.renderStrategy) {
-      //     case 'defer':
-      //       // RenderQueue prevents double renders when changing multiple reactive variables in a row.
-      //       RenderQueue.render(self);
-      //       break;
-      //     case 'immediately':
-      //       // Don't use RenderQueue, just render immediately instead.
-      //       self.render();
-      //       break;
-      //     default:
-      //       throw new Error('Unknown render strategy.');
-      //   }
-
-      //   return success;
-      // },
-
     });
+
+    console.log('Made data reactive:', reactiveData);
+    return reactiveData;
   }
 
   // computed (data) {
@@ -159,13 +158,14 @@ class BaseReactiveComponent {
   // }
 
   logRendering () {
-    console.log(`%c${this.constructor.name}%c – %cRendering (strategy: ${this.renderStrategy})`, `color: ${colors.green};`, `color: ${colors.greyLight};`, `color: ${colors.blue};`);
+    console.groupCollapsed(`%c${this.constructor.name}%c – %cRendering`, `color: ${colors.green};`, `color: ${colors.greyLight};`, `color: ${colors.blue};`);
+    console.trace();
+    console.groupEnd();
   }
 
 }
 
-// BaseReactiveComponent.prototype.html = html;
-BaseReactiveComponent.prototype.html = reactiveHtml;
+BaseReactiveComponent.prototype.html = html;
 BaseReactiveComponent.prototype.svg = svg;
 
 export {
