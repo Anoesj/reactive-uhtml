@@ -57,6 +57,7 @@ define('example-element', class ExampleElement extends HTMLElement {
     otherCount: 0,
     timerPaused: true,
     someMap: new Map([['foo', 'bar']]),
+    someSet: new Set(['foo', 'bar']),
     // someArray: ['a'],
   });
 
@@ -78,10 +79,12 @@ define('example-element', class ExampleElement extends HTMLElement {
       timerPaused,
       yoo,
       someMap,
+      someSet,
       // someArray,
     } = this.data;
 
     const mapList = Array.from(someMap).map(([key, value]) => this.html`<li>${key}: ${value}</li>`);
+    const setList = Array.from(someSet).map(([key, value]) => this.html`<li>${value}</li>`);
 
     return this.html`
       <h1>${yoo}</h1>
@@ -94,11 +97,16 @@ define('example-element', class ExampleElement extends HTMLElement {
 
       <p>Other count times 10: ${this.otherCountTimesTen} (computed)</strong><br/>
       <button onclick="${this.addOtherCount}">Add</button>
-      <button onclick="${this.removeOtherCount}">Remove</button></p>
+      <button onclick="${this.removeOtherCount}" disabled="${this.otherCountTimesTen === 0 || null}">Remove</button></p>
 
       <h3>Reactive Map</h3>
       <ul>
         ${mapList}
+      </ul>
+
+      <h3>Reactive Set</h3>
+      <ul>
+        ${setList}
       </ul>
     `;
 
@@ -157,6 +165,7 @@ define('example-element', class ExampleElement extends HTMLElement {
       if (index === randomFoos.length - 1) index = 0;
       else index++;
       this.data.someMap.set('foo', randomFoos[index]);
+      this.data.someSet.add(randomFoos[index]); // TODO: this is broken
       // this.data.someArray.push(Math.random());
     }, 1000);
   }

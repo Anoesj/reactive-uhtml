@@ -2,6 +2,7 @@ import { html, svg, render } from '../../web_modules/uhtml/esm/index.js';
 // import { Dep } from './Dep.js';
 import { RenderQueue } from './RenderQueue.js';
 import { ReactiveMap } from './ReactiveMap.js';
+import { ReactiveSet } from './ReactiveSet.js';
 
 const colors = {
   blue: '#1877f2',
@@ -74,8 +75,14 @@ class BaseReactiveComponent {
       // If value is a Map, replace it with a ReactiveMap and let ReactiveMap signal us on change.
       if (value instanceof Map) {
         const reactiveMap = new ReactiveMap(value.entries());
-        reactiveMap.onSet = () => void RenderQueue.render(this);
+        reactiveMap.onChange = () => void RenderQueue.render(this);
         data[property] = reactiveMap;
+      }
+      // If value is a Set, replace it with a ReactiveSet and let ReactiveSet signal us on change.
+      else if (value instanceof Set) {
+        const reactiveSet = new ReactiveSet(value.entries());
+        reactiveSet.onChange = () => void RenderQueue.render(this);
+        data[property] = reactiveSet;
       }
 
       // TODO: Object, Array, Set, WeakMap, WeakSet and probably more...

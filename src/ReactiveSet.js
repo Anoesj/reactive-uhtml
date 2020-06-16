@@ -1,4 +1,4 @@
-export class ReactiveMap extends Map {
+export class ReactiveSet extends Set {
 
   onChange = null;
 
@@ -6,8 +6,8 @@ export class ReactiveMap extends Map {
     super(...args);
   }
 
-  set (...args) {
-    const result = super.set(...args);
+  add (...args) {
+    const result = super.add(...args);
     if (this.onChange) this.onChange();
     return result;
   }
@@ -24,10 +24,10 @@ export class ReactiveMap extends Map {
   }
 
   [Symbol.toStringTag] () {
-    return 'ReactiveMap';
+    return 'ReactiveSet';
   }
 
-  // Overwrite ReactiveMap species to the parent Map constructor
-  // static get [Symbol.species]() { return Map; }
+  // Overwrite ReactiveSet species to the parent Set constructor
+  // static get [Symbol.species]() { return Set; }
 
 }
