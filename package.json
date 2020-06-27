@@ -2,6 +2,7 @@
   "name": "reactive-uhtml",
   "version": "0.0.1",
   "description": "",
+  "module": "src/define.js",
   "scripts": {
     "prepare": "pnpx snowpack install",
     "serve": "node ./scripts/serve.js"
@@ -17,10 +18,10 @@
   },
   "homepage": "https://github.com/Anoesj/reactive-uhtml#readme",
   "dependencies": {
-    "uhtml": "^1.11.6"
+    "uhtml": "^2.0.1"
   },
   "devDependencies": {
     "browser-sync": "^2.26.7",
-    "snowpack": "^2.0.0-rc.9"
+    "snowpack": "^2.6.0"
   }
 }
