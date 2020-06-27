@@ -164,8 +164,16 @@ define('example-element', class ExampleElement extends HTMLElement {
     setInterval(() => {
       if (index === randomFoos.length - 1) index = 0;
       else index++;
+
       this.data.someMap.set('foo', randomFoos[index]);
-      this.data.someSet.add(randomFoos[index]); // TODO: this is broken
+
+      if (this.data.someSet.size === 0) {
+        this.data.someSet.add(randomFoos[index]); // TODO: this is broken
+      }
+      else {
+        this.data.someSet.clear();
+      }
+
       // this.data.someArray.push(Math.random());
     }, 1000);
   }
