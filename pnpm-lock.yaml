@@ -2,6 +2,7 @@ dependencies:
   uhtml: 2.0.1
 devDependencies:
   browser-sync: 2.26.7
+  rollup: 2.18.1
   snowpack: 2.6.0
 lockfileVersion: 5.1
 packages:
@@ -3666,5 +3667,6 @@ packages:
       integrity: sha1-AI4G2AlDIMNy28L47XagymyKxBk=
 specifiers:
   browser-sync: ^2.26.7
+  rollup: ^2.18.1
   snowpack: ^2.6.0
   uhtml: ^2.0.1

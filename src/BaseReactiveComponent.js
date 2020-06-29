@@ -1,14 +1,9 @@
-import { html, svg, render } from '../../web_modules/uhtml/esm/index.js';
+import { html, svg, render } from './web_modules/uhtml/esm/index.js';
+import { colors } from './helpers.js';
 // import { Dep } from './Dep.js';
 import { RenderQueue } from './RenderQueue.js';
 import { ReactiveMap } from './ReactiveMap.js';
 import { ReactiveSet } from './ReactiveSet.js';
-
-const colors = {
-  blue: '#1877f2',
-  green: 'MediumSeaGreen',
-  greyLight: '#dee5ec',
-};
 
 class BaseReactiveComponent {
 
@@ -96,23 +91,24 @@ class BaseReactiveComponent {
 
     const reactiveData = new Proxy(data, {
 
-      get: (target, property, receiver) => {
-        console.log('Getting', property);
-        // Register the render function as a subscriber
-        // debugger;
-        // const descriptor = Reflect.getOwnPropertyDescriptor(target, property);
-        // if (descriptor) {
-        //   if (descriptor.enumerable === true) {
-        //     console.log(property);
-        //     // deps.get(property).subscribe(this);
-        //   }
-        // }
-        // Perform the actual get
-        return Reflect.get(target, property, receiver);
-      },
+      // get: (target, property, receiver) => {
+      //   console.log('Getting', property);
+      //   // Register the render function as a subscriber
+      //   // debugger;
+      //   // const descriptor = Reflect.getOwnPropertyDescriptor(target, property);
+      //   // if (descriptor) {
+      //   //   if (descriptor.enumerable === true) {
+      //   //     console.log(property);
+      //   //     // deps.get(property).subscribe(this);
+      //   //   }
+      //   // }
+      //   // Perform the actual get
+      //   return Reflect.get(target, property, receiver);
+      // },
 
       set: (target, property, value, receiver) => {
-        console.log(`%c%s%c – %cChange detected for property %s`, `color: ${colors.green};`, this.constructor.name, `color: ${colors.greyLight};`, `color: ${colors.grey};`, property);
+        RenderQueue.logChange(this, property);
+        // console.log(`%c%s%c – %cChange detected for property %s`, `color: ${colors.green};`, this.constructor.name, `color: ${colors.greyLight};`, `color: ${colors.grey};`, property);
 
         // If property is added after the "wrapping in Proxy" phase, add to deps
         // TODO: This will break right now. We need to be able to detect which properties we've already made reactive

@@ -5,7 +5,8 @@
   "module": "src/define.js",
   "scripts": {
     "prepare": "pnpx snowpack install",
-    "serve": "node ./scripts/serve.js"
+    "serve": "node ./scripts/serve.js",
+    "build": "pnpx rollup -c"
   },
   "repository": {
     "type": "git",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "browser-sync": "^2.26.7",
+    "rollup": "^2.18.1",
     "snowpack": "^2.6.0"
   }
 }
